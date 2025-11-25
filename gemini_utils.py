@@ -34,12 +34,12 @@ def check_api_key():
     Returns:
         bool: True if the key is found, False otherwise.
     """
-    # The library checks for GOOGLE_API_KEY first, then GEMINI_API_KEY.
-    if 'GOOGLE_API_KEY' in os.environ or 'GEMINI_API_KEY' in os.environ:
+    # The library checks for GEMINI_API_KEY.
+    if 'GEMINI_API_KEY' in os.environ:
         return True
     else:
         print("Gemini API key is not set in environment variables.")
-        print("Please set either 'GOOGLE_API_KEY' or 'GEMINI_API_KEY'.")
+        print("Please set your 'GEMINI_API_KEY'.")
         return False
 
 def add_citations(response: types.GenerateContentResponse) -> str:

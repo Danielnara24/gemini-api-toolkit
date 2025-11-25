@@ -32,17 +32,17 @@ You must set your Gemini API key as an environment variable before running the s
 
 **Mac/Linux:**
 ```bash
-export GOOGLE_API_KEY="your_actual_api_key_here"
+export GEMINI_API_KEY="your_actual_api_key_here"
 ```
 
 **Windows (Command Prompt):**
 ```cmd
-set GOOGLE_API_KEY="your_actual_api_key_here"
+set GEMINI_API_KEY="your_actual_api_key_here"
 ```
 
 **Windows (PowerShell):**
 ```powershell
-$env:GOOGLE_API_KEY="your_actual_api_key_here"
+$env:GEMINI_API_KEY="your_actual_api_key_here"
 ```
 
 ## API Limits & Pricing
