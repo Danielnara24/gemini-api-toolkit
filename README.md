@@ -1,6 +1,6 @@
 # Gemini Automation Kit
 
-A robust, lightweight Python wrapper for the [Google Gemini API](https://ai.google.dev/) (using the official `google-genai` SDK). 
+A robust, lightweight Python wrapper for the [Google Gemini API](https://ai.google.dev/gemini-api/docs) (using the official `google-genai` SDK). 
 
 This kit simplifies building automation tools by abstracting the complexity of managing multimodal inputs, tools, and response formatting. It provides a clean interface for handling videos, PDFs, "Thinking" models, and—crucially—parsing structured JSON responses.
 
