@@ -67,7 +67,7 @@ def run_gemini_3_test():
     
     # Example: Reading a dense PDF with High resolution
     # UPDATE PATH
-    pdf_path = '/home/daniel/Downloads/Fuentes/exploration-of-tpus-for-ai-applications-3xh6xnkech.pdf' 
+    pdf_path = '/path/to/file.pdf' 
     
     try:
         response_text, tokens = prompt_gemini_3(
