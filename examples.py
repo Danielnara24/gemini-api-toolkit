@@ -32,8 +32,8 @@ def run_video_test():
     print(f"\n--- Running Video Test ---")
     try:
         response_text, tokens = prompt_gemini(
-            model="gemini-2.5-flash",
-            prompt="Summarize this video, look up console specs, and multiply 2587*8493 using code.",
+            model="gemini-2.5-pro",
+            prompt="Summarize this video, look up model specs, and multiply 2587*8493 using code.",
             video_attachment=video_path,
             google_search=True,
             code_execution=True
