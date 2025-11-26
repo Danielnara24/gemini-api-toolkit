@@ -41,7 +41,7 @@ def run_video_test():
         print(f"Input Tokens: {tokens}")
         print(f"Response:\n{response_text}")
     except Exception as e:
-        print(f"Skipping video test (File likely not found): {e}")
+        print(f"Skipping video test: {e}")
 
 # --- 3. Structured Output (JSON) ---
 class Movie(BaseModel):
