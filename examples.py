@@ -109,9 +109,54 @@ def run_gemini_3_structured_tool_test():
     else:
         print(response_data) # Error string
 
+# --- 6. Gemini 3: Complex Agentic Task (Search + Code + JSON) ---
+class FinancialAnalysis(BaseModel):
+    asset_a: str
+    asset_b: str
+    price_a: float
+    price_b: float
+    # The model will compute this using Python and populate the field
+    calculated_ratio: float 
+    recommendation: str
+
+def run_gemini_3_complex_test():
+    print(f"\n--- Running Gemini 3 Complex Agentic Test ---")
+    print("Goal: Search live crypto prices, use Code to calculate a ratio, and return JSON.")
+    
+    # This prompt requires:
+    # 1. Google Search: To find the *current* prices (since knowledge cutoff is Jan 2025).
+    # 2. Code Execution: To perform the division accurately (LLMs are bad at raw math).
+    # 3. Structured Output: To map the result to the FinancialAnalysis class.
+    prompt = (
+        "Find the current price of Bitcoin (BTC) and Ethereum (ETH) in USD. "
+        "Use code to calculate the ETH/BTC ratio (Price of ETH divided by Price of BTC). "
+        "Return the prices, the calculated ratio, and a brief recommendation text."
+    )
+    
+    try:
+        # We assume prompt_gemini_3 is imported from gemini_utils
+        result, tokens = prompt_gemini_3(
+            prompt=prompt,
+            response_schema=FinancialAnalysis,
+            google_search=True,   # Step 1: Get Data
+            code_execution=True,  # Step 2: Process Data
+            thinking_level="high" # Ensure it plans the workflow correctly
+        )
+        
+        print(f"Input Tokens: {tokens}")
+        print("Structured Result:")
+        print(f"  - BTC: ${result.price_a}")
+        print(f"  - ETH: ${result.price_b}")
+        print(f"  - Ratio (ETH/BTC): {result.calculated_ratio:.5f}")
+        print(f"  - Note: {result.recommendation}")
+        
+    except Exception as e:
+        print(f"Complex test failed: {e}")
+
 if __name__ == "__main__":
-    # run_text_test()
+    run_text_test()
     # run_json_test()
     # run_video_test() # Update path first
     # run_gemini_3_test() # Update path first
-    run_gemini_3_structured_tool_test()
+    # run_gemini_3_structured_tool_test()
+    # run_gemini_3_complex_test()
