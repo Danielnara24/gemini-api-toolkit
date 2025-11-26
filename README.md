@@ -2,23 +2,36 @@
 
 A robust, lightweight Python wrapper for the [Google Gemini API](https://ai.google.dev/gemini-api/docs) (using the official `google-genai` SDK). 
 
-This kit simplifies building automation tools by abstracting the complexity of managing multimodal inputs, tools, and response formatting. It provides a clean interface for handling videos, PDFs, "Thinking" models, and—crucially—parsing structured JSON responses.
+This kit simplifies building automation tools by abstracting the complexity of managing multimodal inputs, tools, and response formatting. It provides a clean interface for handling videos, PDFs, "Thinking" models, and structured JSON responses.
 
 **Now fully compatible with the Gemini 3 model family.**
 
+## Features & Core Functions
 
-## Features
+This kit provides **three specialized functions**, each tailored to specific model generations and capabilities.
 
-*   **Gemini 3:** Dedicated support for `gemini-3-pro-preview` capabilities:
-    *   **Thinking Level:** Control reasoning depth (`"low"` for speed/chat, `"high"` for complex tasks) rather than just a simple on/off.
-    *   **Media Resolution:** Granular control (`"low"`, `"medium"`, `"high"`) over token usage for Images, PDFs, and Videos.
-    *   **Agentic Workflows:** The new `prompt_gemini_3` function supports **Tools (Search/Code) AND Structured Outputs** in a single request (e.g., "Search for current prices, calculate a ratio using Python code, and return a JSON object").
-*   **Multimodal Simplified:** Pass local file paths for **Videos** or **PDFs** directly into the prompt function. The script automatically handles MIME types, file data, and context limits.
-*   **Unified Tooling:** Use **Google Search**, **Code Execution**, and **URL Context** simultaneously. The model can look up info, read a URL, and write/run code to answer a single prompt.
-*   **Structured Outputs:** Enforce strict output formats (JSON or Enums) using Pydantic models.
-    *   *Note for Gemini 2.5:* Use `prompt_gemini_structured` (tools are restricted in this mode for older models).
-    *   *Note for Gemini 3:* Use `prompt_gemini_3` with a `response_schema` to combine tools and JSON freely.
-*   **Automatic Citations:** Automatically parses Google Search grounding metadata to insert inline markdown citations (e.g., `[1](url)`) and a formatted source list at the end of the text response.
+### 1. Multimodal & Structured Data (Gemini 3)
+Use **`prompt_gemini_3`** for the `gemini-3-pro-preview` family. This function unlocks the newest API capabilities:
+*   **Combined Modes:** Supports **Tools (Search/Code) and Structured Outputs** in a single request.
+    *   *Example:* "Search for stock prices, calculate a ratio using Python, and return a JSON object."
+*   **Thinking Level:** Granular control (`"low"` for speed, `"high"` for deep reasoning) rather than a simple on/off budget.
+*   **Media Resolution:** Control token usage (`"low"`, `"medium"`, `"high"`) for Images, PDFs, and Videos to balance cost vs. detail.
+
+### 2. Standard Text & Multimodal (Gemini 2.5)
+Use **`prompt_gemini`** for `gemini-2.5-flash` and `gemini-2.5-pro`.
+*   **General Purpose:** Ideal for chat, standard text generation, and file analysis.
+*   **Unified Tooling:** Use Google Search, Code Execution, and URL Context simultaneously.
+*   **Simple Thinking:** Supports boolean (`True`/`False`) configuration for standard thinking models.
+
+### 3. Strict Structured Data (Gemini 2.5)
+Use **`prompt_gemini_structured`** for `gemini-2.5-flash` and `gemini-2.5-pro`.
+*   **Strict Schemas:** Enforce output formats (JSON or Enums) using Pydantic models.
+*   *Limitation:* Due to API constraints on older models, this function **cannot** use Tools (Search/Code) simultaneously.
+
+### Shared Wrapper Capabilities
+All functions benefit from these built-in automations:
+*   **Multimodal Simplified:** Pass local file paths for **Videos** or **PDFs** directly into the function. The script automatically handles MIME types, file data, and context limits.
+*   **Automatic Citations:** When Google Search is enabled, the wrapper parses grounding metadata to automatically insert inline markdown citations (e.g., `[1](url)`) and append a formatted source list.
 
 ## Installation
 
@@ -67,7 +80,7 @@ This tool relies on the Google Gemini API. Usage is subject to the rate limits a
 Import the utility functions into your own Python scripts:
 
 ### 1. Basic Text & Google Search
-Use `prompt_gemini` for standard interactions. Set `google_search=True` to enable live web grounding. The script will automatically format the citations.
+Use `prompt_gemini` for standard interactions with 2.5 models. Set `google_search=True` to enable live web grounding.
 
 ```python
 from gemini_utils import prompt_gemini
@@ -88,7 +101,6 @@ print(response)
 ### 2. Multimodal: Video & PDF
 You don't need to manually upload files via the API; just pass the local file path.
 
-**Video Example:**
 ```python
 video_path = "./downloads/tutorial.mp4"
 
@@ -100,41 +112,34 @@ response, tokens = prompt_gemini(
 )
 ```
 
-**PDF Example:**
-```python
-pdf_path = "./documents/financial_report.pdf"
-
-response, tokens = prompt_gemini(
-    model="gemini-2.5-pro",
-    prompt="Analyze the risk factors mentioned in this document.",
-    pdf_attachment=pdf_path
-)
-```
-
-### 3. Structured Output (JSON)
-Use `prompt_gemini_structured` when you need the LLM to return a specific data structure for your code to use. This uses Pydantic to define the schema.
+### 3. Gemini 3: Agentic Workflow (Search + Code + JSON)
+The new `prompt_gemini_3` function allows you to combine tools (Search/Code) with Structured Outputs.
 
 ```python
 from pydantic import BaseModel
-from gemini_utils import prompt_gemini_structured
+from gemini_utils import prompt_gemini_3
 
-# 1. Define your schema
-class Movie(BaseModel):
-    title: str
-    director: str
-    year: int
-    genre: str
+# 1. Define the desired output structure
+class CryptoRatio(BaseModel):
+    btc_price: float
+    eth_price: float
+    ratio: float
+    summary: str
 
-# 2. Call the function with the schema
-response_data, tokens = prompt_gemini_structured(
-    model="gemini-2.5-flash",
-    prompt="List 3 classic 80s sci-fi movies",
-    response_schema=list[Movie] # We expect a list of movies
+# 2. Run the agent
+# The model will: 
+#   A. Search Google for current prices (Knowledge cutoff is Jan 2025)
+#   B. Write/Run Python code to calculate the exact ratio
+#   C. Return the result as a strict JSON object
+response_obj, tokens = prompt_gemini_3(
+    prompt="Find current BTC and ETH prices and calculate the ETH/BTC ratio.",
+    response_schema=CryptoRatio, 
+    google_search=True,
+    code_execution=True,
+    thinking_level="high"
 )
 
-# 3. Use the data as real Python objects
-for movie in response_data:
-    print(f"{movie.title} was directed by {movie.director}")
+print(f"Ratio: {response_obj.ratio} | Summary: {response_obj.summary}")
 ```
 
 ## Disclaimer
