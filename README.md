@@ -4,14 +4,21 @@ A robust, lightweight Python wrapper for the [Google Gemini API](https://ai.goog
 
 This kit simplifies building automation tools by abstracting the complexity of managing multimodal inputs, tools, and response formatting. It provides a clean interface for handling videos, PDFs, "Thinking" models, and—crucially—parsing structured JSON responses.
 
+**Now fully compatible with the Gemini 3 model family.**
+
+
 ## Features
 
-*   **Multimodal Simplified:** Pass local file paths for **Videos** or **PDFs** directly into the prompt function. The script automatically handles MIME types and file data.
-*   **Unified Tooling:** The main `prompt_gemini` function allows you to use **Google Search**, **Code Execution**, and **URL Context** simultaneously. The model can look up info, read a URL, and write/run code to answer a single prompt.
-*   **Structured Outputs:** A dedicated function (`prompt_gemini_structured`) enforces strict output formats (JSON or Enums) using Pydantic models. 
-    *   *Note: This is separated into its own function because the Gemini API does not currently support using Tools (like Search/Code) and strict JSON Schemas in the same request.*
+*   **Gemini 3:** Dedicated support for `gemini-3-pro-preview` capabilities:
+    *   **Thinking Level:** Control reasoning depth (`"low"` for speed/chat, `"high"` for complex tasks) rather than just a simple on/off.
+    *   **Media Resolution:** Granular control (`"low"`, `"medium"`, `"high"`) over token usage for Images, PDFs, and Videos.
+    *   **Agentic Workflows:** The new `prompt_gemini_3` function supports **Tools (Search/Code) AND Structured Outputs** in a single request (e.g., "Search for current prices, calculate a ratio using Python code, and return a JSON object").
+*   **Multimodal Simplified:** Pass local file paths for **Videos** or **PDFs** directly into the prompt function. The script automatically handles MIME types, file data, and context limits.
+*   **Unified Tooling:** Use **Google Search**, **Code Execution**, and **URL Context** simultaneously. The model can look up info, read a URL, and write/run code to answer a single prompt.
+*   **Structured Outputs:** Enforce strict output formats (JSON or Enums) using Pydantic models.
+    *   *Note for Gemini 2.5:* Use `prompt_gemini_structured` (tools are restricted in this mode for older models).
+    *   *Note for Gemini 3:* Use `prompt_gemini_3` with a `response_schema` to combine tools and JSON freely.
 *   **Automatic Citations:** Automatically parses Google Search grounding metadata to insert inline markdown citations (e.g., `[1](url)`) and a formatted source list at the end of the text response.
-*   **Thinking Configuration:** Native support for enabling/disabling the "Thinking" process (for reasoning models like `gemini-2.5-pro`).
 
 ## Installation
 
