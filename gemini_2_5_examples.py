@@ -1,7 +1,7 @@
 import os
 from typing import List, Optional
 from pydantic import BaseModel, Field
-from gemini_utils import prompt_gemini, prompt_gemini_structured, prompt_gemini_3, check_api_key
+from gemini_utils import prompt_gemini, prompt_gemini_structured, delete_all_uploads, check_api_key
 
 # ==========================================
 # Pydantic Schemas for Structured Examples
@@ -251,5 +251,5 @@ if __name__ == "__main__":
         # example_7_mixed_media()
         
         # Utility to clean up cloud storage after testing heavy media
-        # gemini_utils.delete_all_uploads()
+        # delete_all_uploads()
         pass
