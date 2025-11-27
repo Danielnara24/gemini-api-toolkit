@@ -467,7 +467,7 @@ def prompt_gemini_structured(
         return response.parsed, input_token_count
 
     except Exception as e:
-        return f"An error occurred during structured content generation: {e}", 0
+        return f"An error occurred during content generation: {e}", 0
 
 def prompt_gemini_3(
     model: str = "gemini-3-pro-preview",
@@ -600,4 +600,4 @@ def prompt_gemini_3(
         return full_response, input_token_count
 
     except Exception as e:
-        return f"Gemini 3 Error: {e}", 0
+        return f"An error occurred during content generation: {e}", 0
