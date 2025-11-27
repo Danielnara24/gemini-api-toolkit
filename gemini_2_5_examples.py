@@ -150,7 +150,7 @@ def example_5_multi_pdf_summary():
         print(f"Files not found: {missing}. Please update paths in the function.")
         return
 
-    prompt = "Read these three documents. Provide a combined summary emphasizing the changes between Q1, Q2, and Q3."
+    prompt = "Read these three documents. Provide a combined summary of all 3 combined."
 
     response, tokens = prompt_gemini(
         model="gemini-2.5-pro",
