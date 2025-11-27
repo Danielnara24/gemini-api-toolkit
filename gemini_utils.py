@@ -161,9 +161,10 @@ def _process_media_attachments(
         # Check if already uploaded
         remote_name = get_remote_file_name(client, path)
         if remote_name:
-            # It's already there, just add the reference
+            # Force v1beta URI standard regardless of client version
+            file_uri = f"https://generativelanguage.googleapis.com/v1beta/{remote_name}"
             final_parts.append(types.Part(
-                file_data=types.FileData(file_uri=f"https://generativelanguage.googleapis.com/v1beta/{remote_name}", mime_type=mime_type),
+                file_data=types.FileData(file_uri=file_uri, mime_type=mime_type),
                 media_resolution=media_resolution
             ))
         else:
@@ -197,7 +198,7 @@ def _process_media_attachments(
         # Generate all combinations. 
         # Safety limit: if too many files, fallback to simple greedy (smallest first) to avoid hanging
         if len(local_candidates) > 20:
-            # Greedy approach
+            # Greedy fallback
             sorted_candidates = sorted(local_candidates, key=lambda x: x["size"])
             current_sum = 0
             for c in sorted_candidates:
@@ -207,18 +208,14 @@ def _process_media_attachments(
                 else:
                     upload_files.append(c)
         else:
-            # Optimal combinations approach
+            # Optimal combinations
             best_sum = 0
             best_combination = []
-            
-            # Helper to get indices
             indices = range(len(local_candidates))
-            
             for r in range(len(local_candidates) + 1):
                 for subset_indices in itertools.combinations(indices, r):
                     current_subset = [local_candidates[i] for i in subset_indices]
                     current_size = sum(x["size"] for x in current_subset)
-                    
                     if current_size <= limit_bytes:
                         if current_size > best_sum:
                             best_sum = current_size
@@ -255,8 +252,12 @@ def _process_media_attachments(
                     return f"Error: File processing failed for '{item['path']}' on Google's side."
                 time.sleep(2)
             
+            # EXPLICITLY construct standard v1beta URI to avoid v1alpha compatibility issues
+            # myfile.name returns 'files/xxxx'
+            file_uri = f"https://generativelanguage.googleapis.com/v1beta/{myfile.name}"
+            
             final_parts.append(types.Part(
-                file_data=types.FileData(file_uri=myfile.uri, mime_type=item["mime"]),
+                file_data=types.FileData(file_uri=file_uri, mime_type=item["mime"]),
                 media_resolution=media_resolution
             ))
             print(f"Upload complete: {item['path']}")
