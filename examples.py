@@ -24,19 +24,18 @@ def run_text_test():
     print(f"Input Tokens: {tokens}")
     print(f"Response:\n{response_text}")
 
-# --- 2. Video Test (Multimodal + Code Execution) ---
+# --- 2. Video Test (Multimodal + Search) ---
 def run_video_test():
     # UPDATE THIS PATH TO A REAL FILE ON YOUR SYSTEM
-    video_path = './my_video.mp4' 
+    media_paths = ["/home/daniel/Downloads/small.mp4", "/home/daniel/Downloads/Fuentes/TheImpactofArtificialIntelligenceontheModern.pdf"]
     
     print(f"\n--- Running Video Test ---")
     try:
         response_text, tokens = prompt_gemini(
-            model="gemini-2.5-pro",
-            prompt="Summarize this video, look up model specs, and multiply 2587*8493 using code.",
-            video_attachment=video_path,
-            google_search=True,
-            code_execution=True
+            model="gemini-2.5-flash",
+            prompt="Summarize this video. What does it have to do with this pdf? Look up more info about the subject",
+            media_attachments=media_paths,
+            google_search=True
         )
         print(f"Input Tokens: {tokens}")
         print(f"Response:\n{response_text}")
@@ -68,13 +67,12 @@ def run_gemini_3_test():
     
     # Example: Reading a dense PDF with High resolution
     # UPDATE PATH
-    pdf_path = '/path/to/file.pdf' 
+    pdf_path = ["/home/daniel/Downloads/Fuentes/gpu y npu.pdf", "/home/daniel/Downloads/Fuentes/exploration-of-tpus-for-ai-applications-3xh6xnkech.pdf"]
     
     try:
         response_text, tokens = prompt_gemini_3(
-            prompt="Make a summary of this pdf",
-            pdf_attachment=pdf_path,
-            thinking_level="high",      # Uses dynamic high thinking
+            prompt="Make a summary of these pdfs",
+            media_attachments=pdf_path,
             media_resolution="high"     # Uses ~560 tokens per page for max OCR detail
         )
         print(f"Input Tokens: {tokens}")
@@ -101,7 +99,6 @@ def run_gemini_3_search_code_test():
         prompt=prompt,
         google_search=True,
         code_execution=True,
-        thinking_level="high" # 'High' is recommended for multi-step tool orchestration
     )
     
     print(f"Input Tokens: {tokens}")
@@ -166,7 +163,6 @@ def run_gemini_3_complex_test():
             response_schema=FinancialAnalysis, # Structured output format
             google_search=True,   # Get Data
             code_execution=True,  # Process Data
-            thinking_level="high"
         )
         
         print(f"Input Tokens: {tokens}")
