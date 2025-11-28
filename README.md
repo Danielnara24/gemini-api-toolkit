@@ -199,7 +199,3 @@ This tool relies on the Google Gemini API. Usage is subject to the rate limits a
 
 *   **Pricing:** For details on costs associated with the paid tier:  
     [**Google Gemini API Pricing**](https://ai.google.dev/gemini-api/docs/pricing)
-
-## License
-
-[MIT](https://choosealicense.com/licenses/mit/)
