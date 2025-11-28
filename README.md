@@ -1,6 +1,8 @@
 # Gemini Automation Kit
 
-[![Code License](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/Danielnara24/gemini-automation-kit/blob/main/LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+![Maintenance](https://img.shields.io/badge/Maintained%3F-Yes-brightgreen.svg)
+![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)
 
 A robust, lightweight Python wrapper for the [Google Gemini API](https://ai.google.dev/gemini-api/docs) (using the official `google-genai` SDK). 
 
