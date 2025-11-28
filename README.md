@@ -8,7 +8,7 @@ A robust, lightweight Python wrapper for the [Google Gemini API](https://ai.goog
 
 This kit simplifies building automation tools by abstracting the complexity of managing multimodal inputs, tools, and response formatting. It provides a clean interface for handling videos, PDFs, "Thinking" models, and structured JSON responses.
 
-**Fully compatible with the Gemini 3 model family.**
+**Fully compatible with the Gemini 3 text model family.**
 
 ## Features & Core Functions
 
