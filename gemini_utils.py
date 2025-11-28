@@ -88,6 +88,40 @@ def add_citations(response: types.GenerateContentResponse) -> str:
 
     return text
 
+def _parse_video_timestamp(value: Union[str, int, float, None]) -> Optional[str]:
+    """
+    Parses timestamps (int, 'MM:SS', 'HH:MM:SS') into '123s' format.
+    """
+    if value is None:
+        return None
+    
+    # If it's already a number, return as seconds string
+    if isinstance(value, (int, float)):
+        return f"{int(value)}s"
+    
+    val_str = str(value).strip()
+    
+    # If it contains colon, parse as time format
+    if ":" in val_str:
+        try:
+            parts = val_str.split(":")
+            seconds = 0
+            for part in parts:
+                seconds = seconds * 60 + float(part)
+            return f"{int(seconds)}s"
+        except ValueError:
+            return None
+
+    # If it ends with 's', assume valid (e.g. "40s")
+    if val_str.lower().endswith("s"):
+        return val_str
+    
+    # If string is just a number
+    if val_str.isdigit():
+        return f"{val_str}s"
+        
+    return None
+
 def get_remote_file_name(client: genai.Client, file_path: str) -> str | None:
     """
     Checks if a local file is already uploaded to Gemini by comparing SHA-256 hashes.
@@ -124,14 +158,12 @@ def get_remote_file_name(client: genai.Client, file_path: str) -> str | None:
 
 def _process_media_attachments(
     client: genai.Client, 
-    media_paths: List[str], 
+    media_paths: List[Union[str, Dict[str, Any]]], 
     inline_limit_mb: float = 20.0,
     media_resolution: Optional[Dict[str, str]] = None
 ) -> Union[List[types.Part], str]:
     """
-    Processes media files. Checks for existing remote files, calculates optimal 
-    inline vs upload separation to keep inline data under the limit, uploads 
-    necessary files, and returns a list of prepared Gemini Parts.
+    Processes media files (Local paths, YouTube URLs, and YouTube Dicts with timestamps).
     """
     if not media_paths:
         return []
@@ -141,12 +173,45 @@ def _process_media_attachments(
     # Candidates for local processing: (path, size_bytes, mime_type)
     local_candidates = []
     
-    # 1. First Pass: Validation, Mime Detection, and Remote Check
-    for path in media_paths:
-        if not path:
+    for item in media_paths:
+        if not item:
             continue
         
+        # --- 1. Normalize Input (Distinguish between URL/Dict and Local Path) ---
+        target_path_or_url = ""
+        video_meta = None
+        
+        if isinstance(item, dict):
+            target_path_or_url = item.get("url", "")
+            # Process timestamps if present
+            start = _parse_video_timestamp(item.get("start"))
+            end = _parse_video_timestamp(item.get("end"))
+            
+            if start or end:
+                video_meta = types.VideoMetadata(
+                    start_offset=start,
+                    end_offset=end
+                )
+        else:
+            target_path_or_url = str(item)
+
+        # --- 2. Check for YouTube / Web URL ---
+        # Simple check for YouTube URLs to handle them separately from local files
+        if "youtube.com" in target_path_or_url or "youtu.be" in target_path_or_url:
+            part_args = {
+                "file_data": types.FileData(file_uri=target_path_or_url),
+                "media_resolution": media_resolution
+            }
+            if video_meta:
+                part_args["video_metadata"] = video_meta
+                
+            final_parts.append(types.Part(**part_args))
+            continue
+            
+        # --- 3. Local File Processing (Existing Logic) ---
+        path = target_path_or_url
         file_path = pathlib.Path(path)
+        
         if not file_path.exists():
             return f"Error: File not found at '{path}'"
 
@@ -154,14 +219,12 @@ def _process_media_attachments(
         if not mime_type:
             return f"Error: Could not determine MIME type for '{path}'."
         
-        # Check supported types
         if not (mime_type.startswith("image/") or mime_type.startswith("video/") or mime_type == "application/pdf"):
              return f"Error: Unsupported file type '{mime_type}' for file '{path}'."
 
         # Check if already uploaded
         remote_name = get_remote_file_name(client, path)
         if remote_name:
-            # Force v1beta URI standard regardless of client version
             file_uri = f"https://generativelanguage.googleapis.com/v1beta/{remote_name}"
             final_parts.append(types.Part(
                 file_data=types.FileData(file_uri=file_uri, mime_type=mime_type),
@@ -180,25 +243,18 @@ def _process_media_attachments(
     if not local_candidates:
         return final_parts
 
-    # 2. Optimization Logic: Subset Sum Problem
-    # We want to maximize the size of files kept inline such that Sum(inline) <= Limit
+    # --- 4. Optimization Logic (Local Files Only) ---
     limit_bytes = inline_limit_mb * 1024 * 1024
-    
     inline_files = []
     upload_files = []
 
-    # Calculate total size
     total_candidate_size = sum(c["size"] for c in local_candidates)
 
     if total_candidate_size <= limit_bytes:
-        # All fit inline
         inline_files = local_candidates
     else:
-        # Find optimal subset for inline
-        # Generate all combinations. 
-        # Safety limit: if too many files, fallback to simple greedy (smallest first) to avoid hanging
+        # Greedy fallback for speed if many files, otherwise combinations
         if len(local_candidates) > 20:
-            # Greedy fallback
             sorted_candidates = sorted(local_candidates, key=lambda x: x["size"])
             current_sum = 0
             for c in sorted_candidates:
@@ -208,7 +264,6 @@ def _process_media_attachments(
                 else:
                     upload_files.append(c)
         else:
-            # Optimal combinations
             best_sum = 0
             best_combination = []
             indices = range(len(local_candidates))
@@ -222,11 +277,10 @@ def _process_media_attachments(
                             best_combination = current_subset
             
             inline_files = best_combination
-            # The rest go to upload
             inline_paths = set(x["path"] for x in inline_files)
             upload_files = [x for x in local_candidates if x["path"] not in inline_paths]
 
-    # 3. Process Inline Files
+    # --- 5. Process Inline Files ---
     for item in inline_files:
         try:
             file_bytes = item["path_obj"].read_bytes()
@@ -237,7 +291,7 @@ def _process_media_attachments(
         except Exception as e:
             return f"Error reading file '{item['path']}': {e}"
 
-    # 4. Process Upload Files
+    # --- 6. Process Upload Files ---
     for item in upload_files:
         print(f"Uploading '{item['path']}' ({item['size']/1024/1024:.2f} MB)...")
         try:
@@ -252,8 +306,6 @@ def _process_media_attachments(
                     return f"Error: File processing failed for '{item['path']}' on Google's side."
                 time.sleep(2)
             
-            # EXPLICITLY construct standard v1beta URI to avoid v1alpha compatibility issues
-            # myfile.name returns 'files/xxxx'
             file_uri = f"https://generativelanguage.googleapis.com/v1beta/{myfile.name}"
             
             final_parts.append(types.Part(
