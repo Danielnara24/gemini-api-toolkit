@@ -1,5 +1,7 @@
 # Gemini Automation Kit
 
+[![Code License](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/Danielnara24/gemini-automation-kit/blob/main/LICENSE)
+
 A robust, lightweight Python wrapper for the [Google Gemini API](https://ai.google.dev/gemini-api/docs) (using the official `google-genai` SDK). 
 
 This kit simplifies building automation tools by abstracting the complexity of managing multimodal inputs, tools, and response formatting. It provides a clean interface for handling videos, PDFs, "Thinking" models, and structured JSON responses.
