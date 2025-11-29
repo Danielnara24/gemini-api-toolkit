@@ -77,8 +77,8 @@ The kit includes a utility function, `delete_all_uploads()`, which queries the F
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/Danielnara24/gemini-automation-kit.git
-    cd gemini-automation-kit
+    git clone https://github.com/Danielnara24/gemini-api-toolkit.git
+    cd gemini-api-toolkit
     ```
 
 2.  **Install dependencies:**
