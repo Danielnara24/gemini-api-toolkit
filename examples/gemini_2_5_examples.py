@@ -1,7 +1,7 @@
 import os
 from typing import List, Optional
 from pydantic import BaseModel, Field
-from src.gemini_kit.core import prompt_gemini, prompt_gemini_structured, delete_all_uploads, check_api_key
+from gemini_kit import prompt_gemini, prompt_gemini_structured, delete_all_uploads, check_api_key
 
 # ==========================================
 # Pydantic Schemas for Structured Examples
@@ -293,11 +293,11 @@ if __name__ == "__main__":
         
         # Uncomment the function you wish to run:
         
-        # example_url_context()
+        example_url_context()
         # example_structured_no_tools()
         # example_search_and_code()
-        example_youtube_simple_url()
-        example_youtube_timestamps_summary()
+        # example_youtube_simple_url()
+        # example_youtube_timestamps_summary()
         
         # NOTE: For the following, ensure you create the files or update paths:
         # example_video_structured()
