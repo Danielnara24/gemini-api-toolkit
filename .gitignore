@@ -11,3 +11,6 @@ venv/
 # OS generated files
 .DS_Store
 Thumbs.db
+
+# Distribution / packaging
+dist/
