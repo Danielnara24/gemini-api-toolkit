@@ -409,7 +409,7 @@ def prompt_gemini(
                 
                 # Check for RPM error
                 if "GenerateRequestsPerMinute" in str(e):
-                    time.sleep(60)
+                    time.sleep(50)
                 else:
                     time.sleep(1)
 
@@ -531,7 +531,7 @@ def prompt_gemini_structured(
                 
                 # Check for RPM error
                 if "GenerateRequestsPerMinute" in str(e):
-                    time.sleep(60)
+                    time.sleep(50)
                 else:
                     time.sleep(1)
 
@@ -663,7 +663,7 @@ def prompt_gemini_3(
                 
                 # Check for RPM error
                 if "GenerateRequestsPerMinute" in str(e):
-                    time.sleep(60)
+                    time.sleep(50)
                 else:
                     time.sleep(1)
 
