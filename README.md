@@ -19,19 +19,11 @@ import mimetypes
 import pathlib
 from google import genai
 from google.genai import types
-from pydantic import BaseModel, Field
 
-# 1. Define Structure
-class ClaimDecision(BaseModel):
-    decision: str = Field(description="Approved or Denied")
-    estimated_cost: float
-    reasoning: str
-    requires_human_review: bool
-
-# 2. Setup Client
+# 1. Setup Client (Requires v1alpha for specific Gemini 3 features)
 client = genai.Client(http_options={'api_version': 'v1alpha'})
 
-# 3. Handle Inputs
+# 2. Handle Inputs
 media_files = ["front_bumper.jpg", "side_panel.jpg", "police_report.pdf"]
 parts = []
 
@@ -42,9 +34,10 @@ for path_str in media_files:
     if mime_type == "application/pdf":
         print(f"Uploading {path}...")
         with open(path, "rb") as f:
-            # Upload
+            # Upload via Files API
             uploaded_file = client.files.upload(file=f, config={'mime_type': mime_type})
         
+        # Poll for processing
         while True:
             file_meta = client.files.get(name=uploaded_file.name)
             if file_meta.state.name == "ACTIVE":
@@ -56,33 +49,31 @@ for path_str in media_files:
             
         parts.append(types.Part(
             file_data=types.FileData(file_uri=uploaded_file.uri, mime_type=mime_type),
-            media_resolution={"level": "media_resolution_high"} # PDF spec from docs
+            media_resolution={"level": "media_resolution_high"}
         ))
     else:
-        # Inline Image
+        # Send Images Inline
         parts.append(types.Part(
             inline_data=types.Blob(
                 data=path.read_bytes(), 
                 mime_type=mime_type
             ),
-            media_resolution={"level": "media_resolution_high"} # Image spec from docs
+            media_resolution={"level": "media_resolution_high"}
         ))
 
-# 4. Add Prompt
-parts.append(types.Part(text="Analyze these images and the report to determine if the insurance claim should be approved."))
+# 3. Add Prompt
+parts.append(types.Part(text="Analyze these images and the report. Determine if the insurance claim should be approved and explain why."))
 
-# 5. Configure Gemini 3 Specifics
+# 4. Configure Gemini 3 Specifics
 generate_config = types.GenerateContentConfig(
     temperature=1.0, # Recommended default for Gem 3
-    response_mime_type="application/json",
-    response_schema=ClaimDecision,
     thinking_config=types.ThinkingConfig(
         thinking_level="HIGH",
         include_thoughts=True
     )
 )
 
-# 6. Generate
+# 5. Generate
 print("Generating...")
 response = client.models.generate_content(
     model="gemini-3-pro-preview",
@@ -90,37 +81,25 @@ response = client.models.generate_content(
     config=generate_config
 )
 
-# 7. Parse Result
-if response.parsed:
-    print(response.parsed)
-else:
-    print(response.text)
+print(response.text)
 ```
 
 
 **With Gemini API Toolkit:**
 ```python
-from pydantic import BaseModel, Field
 from gemini_kit import prompt_gemini_3
 
-# 1. Define Structure
-class ClaimDecision(BaseModel):
-    decision: str = Field(description="Approved or Denied")
-    estimated_cost: float
-    reasoning: str
-    requires_human_review: bool
-
-# 2. Define Inputs
+# 1. Define Inputs
 media = ["front_bumper.jpg", "side_panel.jpg", "police_report.pdf"]
-prompt_text = "Analyze these images and the report to determine if the insurance claim should be approved."
+prompt_text = "Analyze these images and the report. Determine if the insurance claim should be approved and explain why."
 
-# 3. Call the Function
+# 2. Call the Function
 result, tokens = prompt_gemini_3(
     model="gemini-3-pro-preview",
     prompt=prompt_text,
     media_attachments=media,
-    response_schema=ClaimDecision,
     media_resolution="high", 
+    thinking_level="high"
 )
 
 print(result)
