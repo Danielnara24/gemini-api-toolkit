@@ -218,6 +218,7 @@ delete_all_uploads()
 *   **google_search:** Boolean to enable Grounding with Google Search.
 *   **code_execution:** Boolean to enable the Python code interpreter tool.
 *   **url_context:** Boolean to enable the model to read/process content from URLs in the prompt.
+*   **max_retries:** Number of times to retry the API call if it fails. 0 by default
 
 ## Disclaimer
 
