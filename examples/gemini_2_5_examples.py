@@ -293,7 +293,7 @@ if __name__ == "__main__":
         
         # Uncomment the function you wish to run:
         
-        example_url_context()
+        # example_url_context()
         # example_structured_no_tools()
         # example_search_and_code()
         # example_youtube_simple_url()
