@@ -183,6 +183,10 @@ from gemini_kit import delete_all_uploads
 delete_all_uploads()
 ```
 
+## More Examples
+
+The `examples/` folder in this repository contains scripts demonstrating specific use cases.
+
 ## Arguments
 
 *   **model:** The name of the Gemini model to use (e.g., "gemini-2.5-flash", "gemini-3-pro-preview").
