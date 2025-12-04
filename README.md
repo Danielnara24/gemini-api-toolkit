@@ -10,7 +10,7 @@ Python wrapper for the [Google Gemini API](https://ai.google.dev/gemini-api/docs
 ## Comparison: Manually vs. Toolkit
 
 The following example demonstrates a complex multimodal workflow:
-Processing images and a PDF to generate a structured insurance claim decision using the `gemini-3-pro-preview` model.
+Processing images and a PDF to generate an insurance claim decision using the `gemini-3-pro-preview` model.
 
 **Raw SDK (Manual Implementation):**
 ```python
