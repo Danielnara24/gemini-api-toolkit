@@ -1148,44 +1148,56 @@ def _visualize_points(image_path_or_url: str, json_data: List[Dict[str, Any]]) -
         
         colors = ['red', 'lime', 'blue', 'yellow', 'cyan', 'magenta', 'orange', 'purple']
         try:
-            font = ImageFont.truetype("arial.ttf", 16)
+            font = ImageFont.truetype("arial.ttf", 15)
         except IOError:
             font = ImageFont.load_default()
 
+        main_color = "#2962FF" 
         point_radius = 5
 
         for i, item in enumerate(json_data):
             # MULTIVIEW HANDLER: Check if item is explicitly marked out of frame
             if item.get("in_frame") is False:
-                logger.info(f"Item '{item.get('label')}' is out of frame. Skipping.")
                 continue
 
-            point = item.get("point") # Expected [y, x]
+            point = item.get("point")
             label = item.get("label", "Point")
             
-            # If point is missing, skip
             if not point or len(point) != 2:
                 continue
 
-            # Gemini returns [y, x] normalized to 1000
             norm_y, norm_x = point
-            
             abs_y = int(norm_y / 1000 * height)
             abs_x = int(norm_x / 1000 * width)
 
-            color = colors[i % len(colors)]
+            # 1. Draw Point 
+            # Outer white ring (outline)
+            draw.ellipse((abs_x - point_radius - 2, abs_y - point_radius - 2, 
+                          abs_x + point_radius + 2, abs_y + point_radius + 2), fill="white")
+            # Inner blue circle
+            draw.ellipse((abs_x - point_radius, abs_y - point_radius, 
+                          abs_x + point_radius, abs_y + point_radius), fill=main_color)
+            
+            # 2. Draw Label
+            # Offset text slightly to the right
+            text_loc = (abs_x + 15, abs_y - 10)
+            
+            # Simple bounds check to keep label on screen
+            if text_loc[0] > width - 80: 
+                # If too far right, move to the left of the dot
+                text_width = draw.textlength(label, font=font)
+                text_loc = (abs_x - text_width - 15, abs_y - 10)
 
-            # Draw Point (Outer White, Inner Color)
-            draw.ellipse((abs_x - point_radius - 2, abs_y - point_radius - 2, abs_x + point_radius + 2, abs_y + point_radius + 2), fill="white")
-            draw.ellipse((abs_x - point_radius, abs_y - point_radius, abs_x + point_radius, abs_y + point_radius), fill=color)
+            # Get text bounding box
+            left, top, right, bottom = draw.textbbox(text_loc, label, font=font)
             
-            # Draw Label
-            text_loc = (abs_x + 10, abs_y - 10)
-            if text_loc[0] > width - 50: text_loc = (abs_x - 60, abs_y - 10) # Keep on screen
+            # Draw blue background rectangle with padding
+            padding = 4
+            draw.rectangle((left - padding, top - padding, right + padding, bottom + padding), 
+                           fill=main_color)
             
-            bbox = draw.textbbox(text_loc, label, font=font)
-            draw.rectangle(bbox, fill="white", outline=color, width=1)
-            draw.text(text_loc, label, fill="black", font=font)
+            # Draw white text
+            draw.text(text_loc, label, fill="white", font=font)
 
         return im
 
@@ -1309,6 +1321,4 @@ def pointing(
         annotated_image = _visualize_points(image_path, json_data)
 
     return json_data, annotated_image
-
-
 
