@@ -1124,22 +1124,3 @@ def segmentation(
         annotated_image = _visualize_segmentation(image_path, json_data)
 
     return json_data, annotated_image
-
-
-# Segmentation example
-
-json_result, annotated_img = segmentation(
-    model="gemini-2.5-pro",
-    prompt="Segment all pillows in the image",
-    image_path="/home/daniel/Downloads/Modern_living_room_with_clean_lines_and_grey_sofa_set.webp",
-    segmentation_output_path="/home/daniel/Documents/segmentation_output",
-    visual=True,
-    temperature=0.5,
-    max_retries=2
-)
-
-print("Segmentation JSON Result:")
-print(json_result)
-
-if annotated_img:
-    annotated_img.show()  # Display the image with segmentation overlays
