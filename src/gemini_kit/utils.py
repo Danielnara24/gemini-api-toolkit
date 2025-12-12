@@ -17,7 +17,7 @@ from typing import Any, List, Optional, Union, Dict
 # Initialize logger for this module
 logger = logging.getLogger(__name__)
 
-def add_citations(response: types.GenerateContentResponse) -> str:
+def _add_citations(response: types.GenerateContentResponse) -> str:
     """
     Processes a Gemini response to add inline citations and a formatted source list.
     """
@@ -97,7 +97,7 @@ def _parse_video_timestamp(value: Union[str, int, float, None]) -> Optional[str]
         
     return None
 
-def get_remote_file_name(client: genai.Client, file_path: str) -> str | None:
+def _get_remote_file_name(client: genai.Client, file_path: str) -> str | None:
     """
     Checks if a local file is already uploaded to Gemini by comparing SHA-256 hashes.
     
@@ -213,7 +213,7 @@ def _process_media_attachments(
              return msg
 
         # Check if already uploaded
-        remote_name = get_remote_file_name(client, path)
+        remote_name = _get_remote_file_name(client, path)
         if remote_name:
             logger.info(f"File '{path}' found remotely as '{remote_name}'. Using existing file.")
             file_uri = f"https://generativelanguage.googleapis.com/v1beta/{remote_name}"

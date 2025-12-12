@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 # Import helper functions
 from .utils import (
-    add_citations,
+    _add_citations,
     _process_media_attachments,
     _clean_json_markdown,
     _visualize_2d,
@@ -182,7 +182,7 @@ def prompt_gemini(
             )
 
             if has_grounding_metadata:
-                full_response = add_citations(response)
+                full_response = _add_citations(response)
                 code_parts = []
                 for part in response.candidates[0].content.parts:
                     if part.executable_code is not None:
@@ -358,7 +358,7 @@ def prompt_gemini_3(
         )
 
         if has_grounding:
-            full_response = add_citations(response)
+            full_response = _add_citations(response)
         else:
             full_response = response.text
 
