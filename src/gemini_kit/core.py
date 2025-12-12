@@ -20,7 +20,8 @@ from .utils import (
     _visualize_2d,
     _visualize_segmentation,
     _save_segmentation_artifacts,
-    _visualize_points
+    _visualize_points,
+    _generate_processed_filename
 )
 
 def check_api_key():
@@ -372,6 +373,7 @@ def detect_2d(
     prompt: str = "Detect all items.",
     image_path: str = None,
     visual: bool = False,
+    output_path: str = None,
     temperature: float = 0.5,
     max_retries: int = 0
 ) -> tuple[Union[List[Dict[str, Any]], str], Optional[Image.Image]]:
@@ -451,12 +453,25 @@ def detect_2d(
         logger.error(f"Failed to parse JSON response: {response_text}")
         return f"Error: Could not parse model response. Raw: {response_text}", None
 
-    # 6. Visualization
+    # 6. Visualization and Saving
     annotated_image = None
-    if visual:
+    
+    # We allow generation if visual is requested OR if we need to save to disk
+    if visual or output_path:
         annotated_image = _visualize_2d(image_path, json_data)
 
-    return json_data, annotated_image
+    if output_path and annotated_image:
+        try:
+            os.makedirs(output_path, exist_ok=True)
+            filename = _generate_processed_filename(image_path)
+            save_path = os.path.join(output_path, filename)
+            annotated_image.save(save_path)
+            logger.info(f"Saved 2D detection image to: {save_path}")
+        except Exception as e:
+            logger.error(f"Failed to save output image: {e}")
+
+    # Only return the image object if visual was explicitly True
+    return json_data, annotated_image if visual else None
 
 def segmentation(
     model: str = "gemini-2.5-flash",
@@ -560,23 +575,41 @@ def segmentation(
         logger.error(f"Failed to parse JSON response: {response_text}")
         return f"Error: Could not parse model response. Raw: {response_text}", None
 
-    # 6. Saving Artifacts to Disk
-    if output_path:
-        _save_segmentation_artifacts(image_path, json_data, output_path)
-
-    # 7. Visualization (Combined Image)
+    # 6. Visualization & Saving
     annotated_image = None
-    if visual:
+    
+    # Generate the main combined image if requested or if saving
+    if visual or output_path:
         annotated_image = _visualize_segmentation(image_path, json_data)
 
-    return json_data, annotated_image
+    if output_path:
+        try:
+            # Create main output directory
+            os.makedirs(output_path, exist_ok=True)
+
+            # 1. Save individual artifacts to 'masks_and_overlays' subfolder
+            artifacts_dir = os.path.join(output_path, "masks_and_overlays")
+            _save_segmentation_artifacts(image_path, json_data, artifacts_dir)
+
+            # 2. Save the combined annotated image to output_path
+            if annotated_image:
+                filename = _generate_processed_filename(image_path)
+                save_path = os.path.join(output_path, filename)
+                annotated_image.save(save_path)
+                logger.info(f"Saved combined segmentation image to: {save_path}")
+                
+        except Exception as e:
+            logger.error(f"Failed to save segmentation outputs: {e}")
+
+    return json_data, annotated_image if visual else None
 
 def pointing(
     model: str = "gemini-2.5-flash",
     prompt: str = "Point to the main items in this image.",
     image_path: str = None,
-    context: List[Any] = None, # NEW: Allows passing previous images or text
+    context: List[Any] = None,
     visual: bool = False,
+    output_path: str = None,
     temperature: float = 0.5,
     max_retries: int = 0
 ) -> tuple[Union[List[Dict[str, Any]], str], Optional[Image.Image]]:
@@ -679,9 +712,20 @@ def pointing(
         logger.error(f"Failed to parse JSON: {response_text}")
         return f"Error: Invalid JSON. Raw: {response_text}", None
 
-    # 6. Visualization
+    # 6. Visualization and Saving
     annotated_image = None
-    if visual:
+    
+    if visual or output_path:
         annotated_image = _visualize_points(image_path, json_data)
+        
+    if output_path and annotated_image:
+        try:
+            os.makedirs(output_path, exist_ok=True)
+            filename = _generate_processed_filename(image_path)
+            save_path = os.path.join(output_path, filename)
+            annotated_image.save(save_path)
+            logger.info(f"Saved pointing image to: {save_path}")
+        except Exception as e:
+            logger.error(f"Failed to save output image: {e}")
 
-    return json_data, annotated_image
+    return json_data, annotated_image if visual else None

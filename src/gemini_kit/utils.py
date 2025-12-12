@@ -8,6 +8,7 @@ import pathlib
 import hashlib
 import base64
 import time
+import datetime
 import numpy as np
 import itertools
 import google.genai as genai
@@ -378,7 +379,7 @@ def _visualize_2d(image_path_or_url: str, bounding_boxes: List[Dict[str, Any]]) 
 
             # Draw Rectangle
             color = colors[i % len(colors)]
-            draw.rectangle(((abs_x1, abs_y1), (abs_x2, abs_y2)), outline=color, width=3)
+            draw.rectangle(((abs_x1, abs_y1), (abs_x2, abs_y2)), outline=color, width=2)
             
             # Draw Label with background
             text_bbox = draw.textbbox((abs_x1, abs_y1), label, font=font)
@@ -476,7 +477,7 @@ def _visualize_segmentation(image_path_or_url: str, json_data: List[Dict[str, An
                 logger.warning(f"Failed to process mask for {label}: {e}")
 
             # Draw Box and Label
-            draw.rectangle(((abs_x0, abs_y0), (abs_x1, abs_y1)), outline=color_name, width=3)
+            draw.rectangle(((abs_x0, abs_y0), (abs_x1, abs_y1)), outline=color_name, width=2)
             text_loc = (abs_x0, max(0, abs_y0 - 20))
             draw.rectangle(draw.textbbox(text_loc, label, font=font), fill=color_name)
             draw.text(text_loc, label, fill="black" if color_name in ['yellow', 'lime', 'cyan'] else "white", font=font)
@@ -651,3 +652,25 @@ def _visualize_points(image_path_or_url: str, json_data: List[Dict[str, Any]]) -
     except Exception as e:
         logger.error(f"Pointing visualization failed: {e}")
         return None
+
+# --- Helper Function to Save PIL images ---
+
+def _generate_processed_filename(image_path: str) -> str:
+    """Generates filename: {original_name}_processed_DDMMYYHHMMSS.png"""
+    # Get timestamp
+    timestamp = datetime.datetime.now().strftime("%d%m%y%H%M%S")
+    
+    # Get original filename stem
+    if str(image_path).startswith(('http://', 'https://')):
+        # Fallback for URLs if meaningful name isn't easily extracted
+        name = "url_image"
+        # Try to split last part of URL
+        try:
+            url_part = image_path.split("/")[-1]
+            name = os.path.splitext(url_part)[0]
+        except:
+            pass
+    else:
+        name = os.path.splitext(os.path.basename(image_path))[0]
+        
+    return f"{name}_processed_{timestamp}.png"

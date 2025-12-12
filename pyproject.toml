@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "gemini-api-toolkit"
-version = "0.4.0"
+version = "0.5.0"
 authors = [{ name="Danielnara24" },]
 description = "A robust, lightweight Python wrapper for the Google Gemini API."
 readme = "README.md"
@@ -16,7 +16,10 @@ classifiers = [
 ]
 dependencies = [
     "google-genai",
-    "pydantic"
+    "pydantic",
+    "requests",
+    "pillow",
+    "numpy"
 ]
 
 [project.urls]
