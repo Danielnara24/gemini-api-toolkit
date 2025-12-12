@@ -247,7 +247,7 @@ json_data, visual_image = detect_2d(
 visual_image.show()
 ```
 
-![2D Detection Example](assets/detect_2d_example.png)
+![2D Detection Example](assets/detect_2d_example.webp)
 
 ### 2. Pointing
 Identify the precise location of objects (y, x coordinates).
@@ -265,7 +265,7 @@ json_data, visual_image = pointing(
 visual_image.show()
 ```
 
-![Pointing Example](assets/pointing_example.png)
+![Pointing Example](assets/pointing_example.webp)
 
 ### 3. Segmentation
 Generate pixel-level masks for objects.  
@@ -287,7 +287,7 @@ json_data, visual_image = segmentation(
 visual_image.show()
 ```
 
-![Segmentation Example](assets/segmentation_example.png)
+![Segmentation Example](assets/segmentation_example.webp)
 
 ## Arguments for Spatial Understanding Functions
 
