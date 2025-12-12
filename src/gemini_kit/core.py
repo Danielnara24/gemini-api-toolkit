@@ -421,10 +421,25 @@ def detect_2d(
         thinking_config=thinking_config
     )
 
+    
     # 3. Process Media
-    media_parts = _process_media_attachments(client, [image_path], inline_limit_mb=20.0)
-    if isinstance(media_parts, str): 
-        return f"Media Error: {media_parts}", None
+    try:
+        # Check if input is a URL
+        if str(image_path).startswith(('http://', 'https://')):
+            img_resp = requests.get(image_path)
+            img_resp.raise_for_status()
+            
+            # Attempt to get mime type from headers, fallback to jpeg
+            mime_type = img_resp.headers.get('Content-Type', 'image/jpeg')
+            
+            media_parts = [types.Part.from_bytes(data=img_resp.content, mime_type=mime_type)]
+        else:
+            # Fallback to standard processing for local files/YouTube
+            media_parts = _process_media_attachments(client, [image_path], inline_limit_mb=20.0)
+            if isinstance(media_parts, str): 
+                return f"Media Error: {media_parts}", None
+    except Exception as e:
+        return f"Media Error: {str(e)}", None
 
     # 4. Generate Content
     contents = media_parts + [types.Part(text=prompt)]
