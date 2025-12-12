@@ -210,7 +210,7 @@ delete_all_uploads()
 > [!TIP]
 > The `examples/` folder in this repository contains scripts demonstrating specific use cases.
 
-## Arguments
+## Arguments for prompting functions
 
 *   **model:** The name of the Gemini model to use (e.g., "gemini-2.5-flash", "gemini-3-pro-preview").
 *   **prompt:** The text instruction sent to the model.
@@ -224,7 +224,80 @@ delete_all_uploads()
 *   **google_search:** Boolean to enable Grounding with Google Search.
 *   **code_execution:** Boolean to enable the Python code interpreter tool.
 *   **url_context:** Boolean to enable the model to read/process content from URLs in the prompt.
-*   **max_retries:** Number of times to retry the API call if it fails. 0 by default
+*   **max_retries:** Number of times to retry the API call if it fails. 0 by default.
+
+## Spatial Understanding
+
+The toolkit provides dedicated functions for 2D detection (bounding boxes), pointing, and segmentation generation. These functions return both the raw JSON data and a visualized Pillow image.
+
+### 1. 2D Object Detection
+Detect objects with bounding boxes using any Gemini model.
+
+```python
+from gemini_kit import detect_2d
+
+# Returns JSON data and a PIL Image with drawn boxes
+json_data, visual_image = detect_2d(
+    model="gemini-2.5-pro", 
+    prompt="Detect all faces in the image. Label what they are wearing.",
+    image_path="street.jpg",
+    visual=True
+)
+
+visual_image.show()
+```
+
+![2D Detection Example](assets/detect_2d_example.png)
+
+### 2. Pointing
+Identify the precise location of objects (y, x coordinates).
+
+```python
+from gemini_kit import pointing
+
+json_data, visual_image = pointing(
+    model="gemini-3-pro-preview", 
+    prompt="Label each part of the motherboard in the image.",
+    image_path="motherboard.png",
+    visual=True
+)
+
+visual_image.show()
+```
+
+![Pointing Example](assets/pointing_example.png)
+
+### 3. Segmentation
+Generate pixel-level masks for objects.  
+*Note: Only supported on Gemini 2.5 models.*
+
+```python
+from gemini_kit import segmentation
+
+# visual=True returns a combined overlay image
+# output_path saves individual mask files to disk
+json_data, visual_image = segmentation(
+    model="gemini-2.5-pro", 
+    prompt="Segment all cupcakes in the image, label 'sprinkles' or 'no sprinkles'",
+    image_path="cupcakes.jpeg",
+    visual=True,
+    output_path="output_samples" 
+)
+
+visual_image.show()
+```
+
+![Segmentation Example](assets/segmentation_example.png)
+
+## Arguments for Spatial Understanding Functions
+
+*   **model:** The name of the Gemini model to use (e.g., "gemini-2.5-flash", "gemini-3-pro-preview").
+*   **prompt:** The text instruction sent to the model.
+*   **image_path:** Local path or URL of the image to use.
+*   **visual:** If True, returns a PIL Image with the visualization.
+*   **output_path:** The path to save PIL images or masks and overlays. Won't save if not specified.
+*   **temperature:** Controls output randomness (0.0 to 2.0). 0.5 Recommended.
+*   **max_retries:** Number of times to retry the API call if it fails. 0 by default.
 
 ## Disclaimer
 
